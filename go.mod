@@ -12,8 +12,8 @@ require (
 	github.com/fsnotify/fsnotify v1.5.1
 	github.com/go-redis/redis/v8 v8.11.3
 	github.com/gobuffalo/packr/v2 v2.8.1
-	github.com/gofiber/fiber/v2 v2.18.0
-	github.com/gofiber/rewrite/v2 v2.1.10
+	github.com/gofiber/fiber/v2 v2.19.0
+	github.com/gofiber/rewrite/v2 v2.1.11
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/graph-gophers/graphql-go v0.0.0-20210319060855-d2656e8bde15
