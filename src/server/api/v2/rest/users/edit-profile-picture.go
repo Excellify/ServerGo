@@ -98,28 +98,39 @@ func EditProfilePicture(router fiber.Router) {
 
 		// Append frames
 		timeline := 0
-		size := image.Rect(0, 0, int(rw), int(rh))
-		canvas := image.NewRGBA(size)
+		canvas := image.NewRGBA(gif.Image[0].Rect)
+		frame := image.NewRGBA(image.Rect(0, 0, int(rw), int(rh)))
+		bg := image.NewUniform(image.Transparent)
+
 		var mask draw.Options
-		bg := image.NewAlpha(size)
 
 		for i, img := range gif.Image {
 
 			mask.SrcMask = img.Bounds()
+			mask.SrcMaskP = canvas.Rect.Min
 
-			draw.NearestNeighbor.Scale(canvas, canvas.Rect, img, gif.Image[0].Rect, draw.Over, &mask)
+			if gif.Disposal[i] == 3 {
+				draw.NearestNeighbor.Scale(frame, frame.Rect, canvas, canvas.Bounds(), draw.Src, nil)
+				draw.NearestNeighbor.Scale(frame, frame.Rect, img, img.Bounds(), draw.Over, &mask)
+			} else {
+				draw.Draw(canvas, canvas.Rect, img, gif.Image[0].Rect.Min, draw.Over)
+			}
 
-			if err = anim.AddFrame(canvas, timeline, cfg); err != nil {
+			draw.NearestNeighbor.Scale(frame, frame.Rect, canvas, canvas.Bounds(), draw.Src, nil)
+
+			if gif.Disposal[i] == 2 {
+				draw.NearestNeighbor.Scale(canvas, canvas.Rect, bg, canvas.Rect, draw.Src, &mask)
+			}
+
+			if err = anim.AddFrame(frame, timeline, cfg); err != nil {
 				log.WithError(err).Error("EditProfilePicture, webp, AddFrame")
 				return restutil.ErrInternalServer().Send(c)
 			}
 
 			timeline += gif.Delay[i] * 10
 
-			if gif.Disposal[i] == 2 {
-				draw.NearestNeighbor.Scale(canvas, canvas.Rect, bg, bg.Rect, draw.Src, &mask)
-			}
 		}
+
 		if err = anim.AddFrame(nil, timeline, cfg); err != nil {
 			log.WithError(err).Error("EditProfilePicture, webp, AddFrame")
 			return restutil.ErrInternalServer().Send(c)
